@@ -122,12 +122,68 @@ def frozen_lake_policy_iteration():
             break
         policy = new_policy
     scores = evaluate_policy(policy, gamma, n)
-    print("Average scores = ", np.mean(scores))
+    print("Policy iteration average scores = ", np.mean(scores))
     return 
 
 
 def frozen_lake_value_iteration():
-    pass
+
+    def extract_policy(v, gamma):
+        policy = np.zeros(env.observation_space.n)
+        for s in range(env.observation_space.n):
+            q_sa = np.zeros(env.action_space.n)
+            for a in range(env.action_space.n):
+                for next_sr in env.env.P[s][a]:
+                    p, s_, r, _ = next_sr
+                    q_sa[a] += (p * (r + gamma * v[s_]))
+            policy[s] = np.argmax(q_sa)
+        return policy
+
+    def value_iteration(gamma):
+        v = np.zeros(env.observation_space.n)
+        max_iterations = 100000
+        eps = 1e-10
+        for i in range(max_iterations):
+            prev_v = np.copy(v)
+            for s in range(env.observation_space.n):
+                q_sa = [sum([p * (r + gamma * prev_v[s_]) for p, s_, r, _ in env.env.P[s][a]]) for a in range(env.action_space.n)]
+                v[s] = max(q_sa)
+            if (np.sum(np.fabs(prev_v - v)) <= eps):
+                print("Value iteration converged at iteration {}".format(i))
+                break
+        return v
+    
+    def evaluate_policy(policy, gamma, n):
+        scores = [run_episode(policy, gamma, render=False) for _ in range(n)]
+        return np.mean(scores)
+
+    def run_episode(policy, gamma, render):
+        obs = env.reset()
+        total_reward = 0
+        step_idx = 0
+        while True:
+            if render:
+                env.render()
+            obs, reward, done, _ = env.step(policy[obs])
+            total_reward += gamma ** step_idx * reward
+            step_idx += 1
+            if done is True:
+                break
+
+        return total_reward
+
+    # create frozen lake environment
+    env_name = "FrozenLake-v1"
+    env = gym.make(env_name)
+
+    # initialize value-function
+    gamma = 0.99
+    optimal_v = value_iteration(gamma)
+    policy = extract_policy(optimal_v, gamma)
+    policy_score = evaluate_policy(policy, gamma, n=100)
+    print(f"Value iteration scores are {policy_score}")        
+
 
 if __name__ == '__main__':
     frozen_lake_policy_iteration()
+    frozen_lake_value_iteration()
