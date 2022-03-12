@@ -123,6 +123,7 @@ def frozen_lake_policy_iteration():
         policy = new_policy
     scores = evaluate_policy(policy, gamma, n)
     print("Policy iteration average scores = ", np.mean(scores))
+    print("Policy iteration final policy = ", policy)
     return 
 
 
@@ -181,7 +182,9 @@ def frozen_lake_value_iteration():
     optimal_v = value_iteration(gamma)
     policy = extract_policy(optimal_v, gamma)
     policy_score = evaluate_policy(policy, gamma, n=100)
-    print(f"Value iteration scores are {policy_score}")        
+    print(f"Value iteration scores are {policy_score}") 
+    print(f"Value iteration final policy ", policy)
+    return       
 
 
 if __name__ == '__main__':
