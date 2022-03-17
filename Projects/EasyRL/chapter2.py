@@ -12,9 +12,10 @@ https://github.com/cuhkrlcourse/RLexample/blob/master/MDP/frozenlake_policy_iter
 https://github.com/cuhkrlcourse/RLexample/blob/master/MDP/frozenlake_value_iteration.py
 """
 
+
+
 """
 Policy iteration Algorithms:
-
 """
 
 import numpy as np
@@ -126,6 +127,9 @@ def frozen_lake_policy_iteration():
     print("Policy iteration final policy = ", policy)
     return 
 
+"""
+Value iteration method
+"""
 
 def frozen_lake_value_iteration():
 
