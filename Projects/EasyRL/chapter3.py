@@ -260,10 +260,68 @@ def TemporalDifferenceLearning():
     scores = evaluate_policy(policy, gamma, n)
     print(f"TD Learning iteration average scores are : {scores}")
 
+def NStepTDLearning(
+    gamma=0.9,
+    alpha=0.1,
+    n_step=3,
+    train_iteration=10000,
+    eval_iteration=100,
+):
+    def evaluate_policy(env, policy, gamma, eval_iteration):
+        scores = []
+        for _ in range(eval_iteration):
+            finished = False
+            obs = env.reset()
+            total_reward = 0
+            step_idx = 0
+            while not finished:
+                obs, reward, finished, info = env.step(policy[obs])
+                total_reward += gamma ** step_idx * reward
+            scores.append(total_reward)
+        return np.mean(scores)
+    
+    def extract_policy(env, policy, v, gamma):
+        num_states = env.observation_space.n
+        num_action = env.action_space.n
+        for s in range(num_states):
+            q_sa = np.zeros(num_action)
+            for a in range(num_action):
+                for next_sr in env.env.P[s][a]:
+                    p, s, r, info = next_sr
+                    q_sa[a] += p * (r + gamma * v[s])
+            policy[s] = np.argmax(q_sa)
+        return policy
+
+    def n_step_tdlearning_run_episod(env, v, policy, gamma, epsilon, n_step, render=False):
+        prev_obs = env.reset()
+        step_idx = 0
+        finished = False
+        total_reward = 0
+        while not finished:
+            if render:
+                env.render()
+            seed = np.random.uniform()
+            action = env.action_space.sample() if seed > (1 - epsilon) else policy[prev_obs]
+            obs, reward, finished, info = env.step(action)
+            total_reward += gamma ** step_idx * reward
+            step_idx += 1
+            if step_idx > n_step:
+                break
+        
+        policy = extract_policy(env, policy, v, gamma)
+            
+
+    env_name = "FrozenLake-v1"
+    env = gym.make(env_name)
+    num_states = env.observation_space.n
+    num_action = env.action_space.n
+
+
 if __name__ == '__main__':
     MonteCarloMethod()
     BenchmarkMonteCarloMethod()
     TemporalDifferenceLearning()
+    NStepTDLearning()
 
 # import gym
 # env = gym.make('FrozenLake-v1')
