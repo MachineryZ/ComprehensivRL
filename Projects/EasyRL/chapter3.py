@@ -18,7 +18,7 @@ def MonteCarloMethod(
         3. update your policy:
             p[si] = argmax(q[si][a])
     """
-    def run_episode(gamma, epsilon, render=False):
+    def run_episode(policy, gamma, epsilon, render=False):
         """
         Generate episode
 
@@ -184,27 +184,86 @@ def BenchmarkMonteCarloMethod():
     # env.render()
     policy, V = monte_carlo(env,episodes=10000,epsilon=0.1)   
     test_policy(env,policy)
-    def evaluate_policy(gamm=0.9, n=10000):
+    def evaluate_policy(gamma=0.9, n=10000):
         scores = []
         for i in range(n):
             obs = env.reset()
             finished = False
+            total_reward = 0.0
+            step_idx = 0
             while not finished:
                 obs, _reward, finished, _info =  env.step(policy[env.env.s])
-            scores.append(_reward)
+                total_reward += gamma ** step_idx * _reward
+                step_idx += 1
+            scores.append(total_reward)
         return np.mean(scores)
     scores = evaluate_policy()
     print("Benchmark Monte Carlo Method average score is = ", scores)
     
 
 def TemporalDifferenceLearning():
+
+    def evaluate_policy(policy, gamma, n):
+        scores = []
+        for _ in range(n):
+            obs = env.reset()
+            finished = False
+            total_reward = 0
+            step_idx = 0
+            while not finished:
+                obs, reward, finished, info = env.step(policy[obs])
+                total_reward += gamma ** step_idx * reward
+                step_idx += 1
+            scores.append(total_reward)
+        return np.mean(scores)
+    
+    def td_run_episode(policy, gamma, epsilon, render = False):
+        prev_obs = env.reset()
+        step_idx = 0
+        finished = False
+        while not finished:
+            if render:
+                env.render()
+            seed = np.random.uniform()
+            action = env.action_space.sample() if seed > (1 - epsilon) else policy[prev_obs]
+            obs, reward, finished, info = env.step(action)
+            v[prev_obs] = (v[prev_obs] + 
+                alpha * (reward + gamma * v[obs] - v[prev_obs]))
+            prev_obs = obs
+            policy = extract_policy(policy, gamma)
+        return policy
+    
+    def extract_policy(policy, gamma):
+        for s in range(num_states):
+            q_sa = np.zeros(num_action)
+            for a in range(num_action):
+                for next_sr in env.env.P[s][a]:
+                    p, s_, r_, info = next_sr
+                    q_sa[a] += (p * (r_ + gamma * v[s_]))
+            policy[s] = np.argmax(q_sa)
+        return policy
+
     import gym
     env_name = "FrozenLake-v1"
-    
+    env = gym.make(env_name)
+    num_states = env.observation_space.n
+    num_action = env.action_space.n
+    v = np.zeros((num_states))
+    policy = np.random.randint(0, num_action, (num_states))
+    gamma = 0.9
+    alpha = 0.1
+    epsilon = 0.1
+    max_iteration = 10000
+    n = 100
+    for _ in range(max_iteration):
+        policy = td_run_episode(policy, gamma, epsilon)
+    scores = evaluate_policy(policy, gamma, n)
+    print(f"TD Learning iteration average scores are : {scores}")
 
 if __name__ == '__main__':
-    MonteCarloMethod()
-    BenchmarkMonteCarloMethod()
+    # MonteCarloMethod()
+    # BenchmarkMonteCarloMethod()
+    TemporalDifferenceLearning()
     pass
 
 # import gym
