@@ -261,10 +261,9 @@ def TemporalDifferenceLearning():
     print(f"TD Learning iteration average scores are : {scores}")
 
 if __name__ == '__main__':
-    # MonteCarloMethod()
-    # BenchmarkMonteCarloMethod()
+    MonteCarloMethod()
+    BenchmarkMonteCarloMethod()
     TemporalDifferenceLearning()
-    pass
 
 # import gym
 # env = gym.make('FrozenLake-v1')
