@@ -316,6 +316,10 @@ def NStepTDLearning(
     num_states = env.observation_space.n
     num_action = env.action_space.n
 
+def Sarsa():
+    env_name = "FrozenLake-v1"
+    env = gym.make(env_name)
+    
 
 if __name__ == '__main__':
     MonteCarloMethod()
