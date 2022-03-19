@@ -316,10 +316,36 @@ def NStepTDLearning(
     num_states = env.observation_space.n
     num_action = env.action_space.n
 
-def Sarsa():
+def Sarsa(
+    alpha=0.1,
+    gamma=0.9,
+    epsilon=0.1,
+    train_iteration=10000,
+    eval_iteraion=100,
+):
+    """
+    Sarsa:
+    TD Learning to predict Q-function
+    
+    Classical TD Learning: predict value-function
+
+    Sarsa:
+    R_{t+1} = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})
+    Q Learning:
+    R_{t+1} = R_{t+1} + \gamma max_{a} Q(S_{t+1}, A_{t+1})
+    """
     env_name = "FrozenLake-v1"
     env = gym.make(env_name)
+    num_state = env.observation_space.n
+    num_action = env.action_space.n
+    policy = np.random.randint()
+
+    def evaluate_policy(policy, ):
+        pass
     
+def QLearning():
+    pass
+
 
 if __name__ == '__main__':
     MonteCarloMethod()
