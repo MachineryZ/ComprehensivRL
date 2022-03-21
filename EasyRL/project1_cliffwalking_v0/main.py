@@ -1,5 +1,4 @@
-from os import stat_result
-from ComprehensiveRL.EasyRL.chapter3 import epsilon_action
+import stat
 import gym
 import math
 import numpy as np
@@ -7,7 +6,6 @@ from typing import List
 import matplotlib.pyplot as plt
 
 from pandas_datareader import test
-
 """
 main.py:
     basic interface, hyper parameters
@@ -52,10 +50,8 @@ class QLearning(object):
         self.train_epochs = train_epochs
         self.test_epochs = test_epochs
 
-        # Initialize Policy and Q-function
+        # Initialize Q-function
         self.q = np.zeros((state_dim, action_dim))
-        self.policy = np.random.randn((state_dim, action_dim))
-        self.policy = np.exp(self.policy) / np.sum(np.exp(self.policy), axis=1, keepdims=True)
 
     def run_episode(self):
         prev_state = self.env.reset()
@@ -64,8 +60,8 @@ class QLearning(object):
         while not finished:
             action = self.epsilon_greedy(prev_state)
             state, reward, finished, info = self.env.step(action)
-            self.q[state][action] += self.alpha * (reward + self.gamma * \
-                (np.max(self.q[state]) - self.q[prev_state][action]))
+            self.q[prev_state, action] += self.alpha * (reward + self.gamma * \
+                (np.max(self.q[state,:]) - self.q[prev_state, action]))
             prev_state = state
             total_reward += reward
         return total_reward
@@ -73,7 +69,7 @@ class QLearning(object):
     def epsilon_greedy(self, state):
         seed = np.random.uniform()
         if seed > 1 - self.epsilon: 
-            action = self.env.sample()
+            action = self.env.action_space.sample()
         else:
             action = np.argmax(self.q[state])
         return action
@@ -88,20 +84,33 @@ class QLearning(object):
         self.plot(reward_list, mode="train")
 
     def test(self):
-        pass
+        reward_list = []
+        for i in range(self.test_epochs):
+            state = self.env.reset()
+            finished = False
+            epoch_reward = 0.0
+            while not finished:
+                state, reward, finished, info = self.env.step(np.argmax(self.q[state]))
+                epoch_reward += reward
+            reward_list.append(epoch_reward)
+        self.plot(reward_list, mode="test")
         
 
     def plot(self, reward_list: List, mode: str):
         if mode == 'train':
-            ax = plt.fiture()
-            ax.set_title("train learning curve of q-learning for cliffwalking-v0")
+            plt.figure()
+            plt.title("train learning curve of q-learning for cliffwalking-v0")
+            plt.plot(reward_list)
             plt.savefig('train.png')
         elif mode == 'test':
-            ax = plt.figure()
-            ax.set_title("test learning curve of q-learning for cliffwalking-v0")
-            ax.set_title("test.png")
+            plt.figure()
+            plt.title("test learning curve of q-learning for cliffwalking-v0")
+            plt.plot(reward_list)
+            plt.savefig("test.png")
 
-
+    def pipeline(self):
+        self.train()
+        self.test()
 
     
 def main():
@@ -109,8 +118,16 @@ def main():
     engine = QLearning(
         env=env,
         state_dim=env.observation_space.n,
-        action_dim=env.action_space.n
+        action_dim=env.action_space.n,
+        gamma=0.9,
+        alpha=0.1,
+        train_epochs=400,
+        test_epochs=100,
+        epsilon_start=0.95,
+        epsilon_end=0.01,
+        epsilon_decay=300,
     )
+    engine.pipeline()
 
 if __name__ == '__main__':
     main()
