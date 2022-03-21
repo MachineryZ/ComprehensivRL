@@ -37,6 +37,10 @@ class QLearning(object):
 
     ):
         super().__init__()
+        """
+        Q-learning update function:
+        Q(S, A) = Q(S, A) + alpha * (R + gamma * max_a Q(S', a) - Q(S, A))
+        """
         # Initialize some Parameters
         self.env = env
         self.state_dim = state_dim
