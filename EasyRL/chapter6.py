@@ -167,7 +167,7 @@ class DQN(object):
             if num_epoch % self.update_epoch == 0:
                 self.target_net.load_state_dict(self.policy_net.state_dict())
         self.plot(rewards, mode="train", extra="na")
-        self.plot(rewards, mode="train", extra="ma")
+        self.plot(ma_rewards, mode="train", extra="ma")
 
     def test(self):
         rewards = []
